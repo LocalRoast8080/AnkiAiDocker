@@ -1,0 +1,22 @@
+#!/usr/bin/with-contenv bash
+
+# Create necessary directories
+mkdir -p /config/app/Anki2/addons21/2055492159
+
+# Create the AnkiConnect config
+cat > /config/app/Anki2/addons21/2055492159/config.json << 'EOF'
+{
+    "apiKey": null,
+    "apiLogPath": null,
+    "ignoreOriginList": [],
+    "webBindAddress": "0.0.0.0",
+    "webBindPort": 8765,
+    "webCorsOrigin": "http://localhost",
+    "webCorsOriginList": [
+        "*"
+    ]
+}
+EOF
+
+# Set proper permissions
+chown -R abc:abc /config/app 

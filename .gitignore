@@ -1,2 +1,36 @@
 .env
 docker-compose.yml
+
+# Anki runtime and user data
+anki-data/Anki2/anki.log
+anki-data/Anki2/prefs21.db
+anki-data/Anki2/collection.media/
+anki-data/Anki2/collection.anki2
+anki-data/Anki2/User 1/
+
+# AnkiConnect configuration
+anki-data/Anki2/addons21/2055492159/config.json
+
+# Python cache and special files
+__pycache__/
+*.py[cod]
+*$py.class
+__init__.py
+__main__.py
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg

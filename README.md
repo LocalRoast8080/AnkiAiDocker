@@ -59,7 +59,7 @@ You now should be able to open anki at a browser with the following URL:
 localhost:3000
 ```
 
-If you also want to use AnkiConnect, make sure your AnkiConnect config looks something like this:
+If you also want to use AnkiConnect, the configuration is automatically set up with the following settings:
 ```
 {
     "apiKey": null,
@@ -73,6 +73,17 @@ If you also want to use AnkiConnect, make sure your AnkiConnect config looks som
     ]
 }
 ```
+
+The configuration is automatically copied to the correct location during container startup, and AnkiConnect is ready to use without any manual configuration steps.
+
+Note: The following manual installation steps are provided for context only. You do not need to perform these steps as the addon is automatically installed and configured during the Docker build process.
+
+### Manual AnkiConnect Installation (For Reference Only)
+After the initial setup, you need to install the AnkiConnect addon manually through the Anki UI:
+1. Open Anki
+2. Go to Tools > Add-ons > Get Add-ons
+3. Enter the code: 2055492159
+4. Click OK to install AnkiConnect
 
 ## Cron example
 
@@ -118,4 +129,56 @@ should provide the following schedule:
 - the sync command at 8h UTC
 - the backup command at 9h UTC
 - the cleanup command at 10h and 22h UTC
+
+# AnkiAiDocker
+
+This project sets up Anki with AnkiConnect in a Docker container, allowing for remote control and automation of Anki operations.
+
+## Prerequisites
+
+- Docker and Docker Compose installed
+- AWS Lightsail instance (or similar cloud server)
+
+## Setup
+
+1. Clone this repository
+2. Build and start the containers:
+   ```bash
+   docker-compose --profile anki up -d
+   ```
+
+## Manual AnkiConnect Installation
+
+After the initial setup, you need to install the AnkiConnect addon manually through the Anki UI:
+
+1. Access the Anki UI through your browser at `http://<your-server-ip>:3000`
+2. Go to Tools -> Add-ons -> Get Add-ons
+3. Enter the AnkiConnect addon code: `2055492159`
+4. Click OK to install the addon
+5. Restart Anki when prompted
+
+This manual installation is required because Anki needs to properly register and initialize the addon through its UI.
+
+## Usage
+
+Once AnkiConnect is installed, you can interact with Anki through its API at `http://<your-server-ip>:8765`.
+
+Example API call:
+```bash
+curl -X POST http://localhost:8765 \
+  -H "Content-Type: application/json" \
+  -d '{"action": "version", "version": 6}'
+```
+
+## Troubleshooting
+
+If you encounter connection issues with AnkiConnect:
+1. Ensure Anki is running and accessible through the UI
+2. Check that the AnkiConnect addon is properly installed
+3. Verify that port 8765 is open and accessible
+4. Check the Anki logs for any error messages
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
