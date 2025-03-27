@@ -1,5 +1,41 @@
-.env
-docker-compose.yml
+# Anki data
+anki_data/
+config/
+data/
+backups/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
 
 # Anki runtime files
 anki-data/Anki2/anki.log
@@ -17,27 +53,3 @@ anki-data/Anki2/addons21/*
 
 # AnkiConnect configuration
 anki-data/Anki2/addons21/2055492159/config.json
-
-# Python cache and special files
-__pycache__/
-*.py[cod]
-*$py.class
-__init__.py
-__main__.py
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
