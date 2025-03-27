@@ -6,14 +6,31 @@ anki-data/Anki2/anki.log
 anki-data/Anki2/prefs21.db
 anki-data/Anki2/collection.media/
 anki-data/Anki2/collection.anki2
-anki-data/Anki2/addons21/2055492159/__init__.py
 anki-data/Anki2/User 1/
 
-# AnkiConnect configuration 
-# The AnkiConnect brings in its own config.json and we have to overwrite it upon install.
+# AnkiConnect configuration
 anki-data/Anki2/addons21/2055492159/config.json
 
-# Python cache files
+# Python cache and special files
 __pycache__/
 *.py[cod]
 *$py.class
+__init__.py
+__main__.py
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
