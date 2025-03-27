@@ -59,7 +59,7 @@ You now should be able to open anki at a browser with the following URL:
 localhost:3000
 ```
 
-If you also want to use AnkiConnect, make sure your AnkiConnect config looks something like this:
+If you also want to use AnkiConnect, the configuration is automatically set up with the following settings:
 ```
 {
     "apiKey": null,
@@ -73,6 +73,17 @@ If you also want to use AnkiConnect, make sure your AnkiConnect config looks som
     ]
 }
 ```
+
+The configuration is automatically copied to the correct location during container startup, and AnkiConnect is ready to use without any manual configuration steps.
+
+Note: The following manual installation steps are provided for context only. You do not need to perform these steps as the addon is automatically installed and configured during the Docker build process.
+
+### Manual AnkiConnect Installation (For Reference Only)
+After the initial setup, you need to install the AnkiConnect addon manually through the Anki UI:
+1. Open Anki
+2. Go to Tools > Add-ons > Get Add-ons
+3. Enter the code: 2055492159
+4. Click OK to install AnkiConnect
 
 ## Cron example
 
@@ -158,21 +169,6 @@ curl -X POST http://localhost:8765 \
   -H "Content-Type: application/json" \
   -d '{"action": "version", "version": 6}'
 ```
-
-## Web Interface
-
-The project includes a web interface for easier interaction with Anki. To start the web interface:
-
-```bash
-docker-compose --profile web up -d
-```
-
-The web interface will be available at `http://<your-server-ip>:5000`.
-
-Features:
-- Upload .apkg files directly through the web interface
-- View and manage Anki decks
-- Simple and intuitive user interface
 
 ## Troubleshooting
 

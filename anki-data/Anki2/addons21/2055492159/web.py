@@ -15,9 +15,9 @@
 
 import json
 import jsonschema
-import http.server
-import socketserver
-from threading import Thread
+import select
+import socket
+
 from . import util
 
 #
@@ -126,61 +126,168 @@ class WebClient:
 class WebServer:
     def __init__(self, handler):
         self.handler = handler
-        self.server = None
-        self.thread = None
+        self.clients = []
+        self.sock = None
 
-    def start(self):
-        class RequestHandler(http.server.BaseHTTPRequestHandler):
-            def do_POST(self2):
-                content_length = int(self2.headers['Content-Length'])
-                body = self2.rfile.read(content_length).decode('utf-8')
-                try:
-                    params = json.loads(body)
-                    result = self.handler(params)
-                    response = json.dumps(result).encode('utf-8')
-                    self2.send_response(200)
-                    self2.send_header('Content-Type', 'application/json')
-                    self2.send_header('Access-Control-Allow-Origin', '*')
-                    self2.send_header('Content-Length', len(response))
-                    self2.end_headers()
-                    self2.wfile.write(response)
-                except Exception as e:
-                    error_response = json.dumps(format_exception_reply(6, str(e))).encode('utf-8')
-                    self2.send_response(500)
-                    self2.send_header('Content-Type', 'application/json')
-                    self2.send_header('Access-Control-Allow-Origin', '*')
-                    self2.send_header('Content-Length', len(error_response))
-                    self2.end_headers()
-                    self2.wfile.write(error_response)
 
-            def do_OPTIONS(self2):
-                self2.send_response(200)
-                self2.send_header('Access-Control-Allow-Origin', '*')
-                self2.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                self2.send_header('Access-Control-Allow-Headers', '*')
-                self2.end_headers()
+    def advance(self):
+        if self.sock is not None:
+            self.acceptClients()
+            self.advanceClients()
 
-        self.server = socketserver.TCPServer(('0.0.0.0', 8765), RequestHandler)
-        self.thread = Thread(target=self.server.serve_forever)
-        self.thread.daemon = True
-        self.thread.start()
 
-    def stop(self):
-        if self.server:
-            self.server.shutdown()
-            self.server.server_close()
+    def acceptClients(self):
+        rlist = select.select([self.sock], [], [], 0)[0]
+        if not rlist:
+            return
+
+        clientSock = self.sock.accept()[0]
+        if clientSock is not None:
+            clientSock.setblocking(False)
+            self.clients.append(WebClient(clientSock, self.handlerWrapper))
+
+
+    def advanceClients(self):
+        self.clients = list(filter(lambda c: c.advance(), self.clients))
+
+
+    def listen(self):
+        self.close()
+
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.setblocking(False)
+        self.sock.bind((util.setting('webBindAddress'), util.setting('webBindPort')))
+        self.sock.listen(util.setting('webBacklog'))
+
+
+    def handlerWrapper(self, req):
+        allowed, corsOrigin = self.allowOrigin(req)
+
+        if req.method == b'OPTIONS':
+            body = ''.encode('utf-8')
+            headers = self.buildHeaders(corsOrigin, body)
+
+            if b'access-control-request-private-network' in req.headers and (
+            req.headers[b'access-control-request-private-network'] == b'true'):
+                # include this header so that if a public origin is included in the whitelist,
+                # then browsers won't fail requests due to the private network access check
+                headers.append(['Access-Control-Allow-Private-Network', 'true'])
+
+            return self.buildResponse(headers, body)
+    
+        try:
+            params = json.loads(req.body.decode('utf-8'))
+            jsonschema.validate(params, request_schema)
+        except (ValueError, jsonschema.ValidationError) as e:
+            if allowed:
+                if len(req.body) == 0:
+                    body = json.dumps({"apiVersion": f"AnkiConnect v.{util.setting('apiVersion')}"}).encode('utf-8')
+                else:
+                    reply = format_exception_reply(util.setting('apiVersion'), e)
+                    body = json.dumps(reply).encode('utf-8')
+                headers = self.buildHeaders(corsOrigin, body)
+                return self.buildResponse(headers, body)
+            else:
+                params = {}  # trigger the 403 response below
+
+        if allowed or params.get('action', '') == 'requestPermission':
+            if params.get('action', '') == 'requestPermission':
+                params['params'] = params.get('params', {})
+                params['params']['allowed'] = allowed
+                params['params']['origin'] = b'origin' in req.headers and req.headers[b'origin'].decode() or ''
+                if not allowed :
+                    corsOrigin = params['params']['origin']
+                        
+            body = json.dumps(self.handler(params)).encode('utf-8')
+            headers = self.buildHeaders(corsOrigin, body)
+        else :
+            headers = [
+                ['HTTP/1.1 403 Forbidden', None],
+                ['Access-Control-Allow-Origin', corsOrigin],
+                ['Access-Control-Allow-Headers', '*']
+            ]
+            body = ''.encode('utf-8')
+
+        return self.buildResponse(headers, body)
+
+
+    def allowOrigin(self, req):
+        # handle multiple cors origins by checking the 'origin'-header against the allowed origin list from the config
+        webCorsOriginList = util.setting('webCorsOriginList')
+
+        # keep support for deprecated 'webCorsOrigin' field, as long it is not removed
+        webCorsOrigin = util.setting('webCorsOrigin')
+        if webCorsOrigin:
+            webCorsOriginList.append(webCorsOrigin)
+
+        allowed = False
+        corsOrigin = 'http://localhost'
+        allowAllCors = '*' in webCorsOriginList  # allow CORS for all domains
+        
+        if allowAllCors:
+            corsOrigin = '*'
+            allowed = True
+        elif b'origin' in req.headers:
+            originStr = req.headers[b'origin'].decode()
+            if originStr in webCorsOriginList :
+                corsOrigin = originStr
+                allowed = True
+            elif 'http://localhost' in webCorsOriginList and ( 
+            originStr == 'http://127.0.0.1' or originStr == 'https://127.0.0.1' or # allow 127.0.0.1 if localhost allowed
+            originStr.startswith('http://127.0.0.1:') or originStr.startswith('http://127.0.0.1:') or
+            originStr.startswith('chrome-extension://') or originStr.startswith('moz-extension://') or originStr.startswith('safari-web-extension://') ) : # allow chrome, firefox and safari extension if localhost allowed
+                corsOrigin = originStr
+                allowed = True
+        else:
+            allowed = True
+        
+        return allowed, corsOrigin
+    
+
+    def buildHeaders(self, corsOrigin, body):
+        return [
+            ['HTTP/1.1 200 OK', None],
+            ['Content-Type', 'application/json'],
+            ['Access-Control-Allow-Origin', corsOrigin],
+            ['Access-Control-Allow-Headers', '*'],
+            ['Content-Length', str(len(body))]
+        ]
+
+
+    def buildResponse(self, headers, body):
+        resp = bytes()
+        for key, value in headers:
+            if value is None:
+                resp += '{}\r\n'.format(key).encode('utf-8')
+            else:
+                resp += '{}: {}\r\n'.format(key, value).encode('utf-8')
+
+        resp += '\r\n'.encode('utf-8')
+        resp += body
+        return resp
+
+
+    def close(self):
+        if self.sock is not None:
+            self.sock.close()
+            self.sock = None
+
+        for client in self.clients:
+            client.close()
+
+        self.clients = []
+
 
 def format_success_reply(api_version, result):
-    return {
-        "result": result,
-        "error": None
-    }
+    if api_version <= 4:
+        return result
+    else:
+        return {"result": result, "error": None}
+
 
 def format_exception_reply(_api_version, exception):
-    return {
-        "result": None,
-        "error": str(exception)
-    }
+    return {"result": None, "error": str(exception)}
 
 
 request_schema = {

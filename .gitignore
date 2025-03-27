@@ -13,3 +13,31 @@ anki-data/Anki2/addons21/*
 !anki-data/Anki2/addons21/2055492159/web.py
 !anki-data/Anki2/addons21/2055492159/util.py
 !anki-data/Anki2/addons21/2055492159/edit.py
+
+
+# AnkiConnect configuration
+anki-data/Anki2/addons21/2055492159/config.json
+
+# Python cache and special files
+__pycache__/
+*.py[cod]
+*$py.class
+__init__.py
+__main__.py
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
