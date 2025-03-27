@@ -59,7 +59,7 @@ You now should be able to open anki at a browser with the following URL:
 localhost:3000
 ```
 
-If you also want to use AnkiConnect, make sure your AnkiConnect config looks something like this:
+If you also want to use AnkiConnect, the configuration is automatically set up with the following settings:
 ```
 {
     "apiKey": null,
@@ -73,6 +73,8 @@ If you also want to use AnkiConnect, make sure your AnkiConnect config looks som
     ]
 }
 ```
+
+The configuration is automatically copied to the correct location during container startup, and AnkiConnect is ready to use without any manual configuration steps.
 
 ## Cron example
 
