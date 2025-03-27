@@ -119,3 +119,70 @@ should provide the following schedule:
 - the backup command at 9h UTC
 - the cleanup command at 10h and 22h UTC
 
+# AnkiAiDocker
+
+This project sets up Anki with AnkiConnect in a Docker container, allowing for remote control and automation of Anki operations.
+
+## Prerequisites
+
+- Docker and Docker Compose installed
+- AWS Lightsail instance (or similar cloud server)
+
+## Setup
+
+1. Clone this repository
+2. Build and start the containers:
+   ```bash
+   docker-compose --profile anki up -d
+   ```
+
+## Manual AnkiConnect Installation
+
+After the initial setup, you need to install the AnkiConnect addon manually through the Anki UI:
+
+1. Access the Anki UI through your browser at `http://<your-server-ip>:3000`
+2. Go to Tools -> Add-ons -> Get Add-ons
+3. Enter the AnkiConnect addon code: `2055492159`
+4. Click OK to install the addon
+5. Restart Anki when prompted
+
+This manual installation is required because Anki needs to properly register and initialize the addon through its UI.
+
+## Usage
+
+Once AnkiConnect is installed, you can interact with Anki through its API at `http://<your-server-ip>:8765`.
+
+Example API call:
+```bash
+curl -X POST http://localhost:8765 \
+  -H "Content-Type: application/json" \
+  -d '{"action": "version", "version": 6}'
+```
+
+## Web Interface
+
+The project includes a web interface for easier interaction with Anki. To start the web interface:
+
+```bash
+docker-compose --profile web up -d
+```
+
+The web interface will be available at `http://<your-server-ip>:5000`.
+
+Features:
+- Upload .apkg files directly through the web interface
+- View and manage Anki decks
+- Simple and intuitive user interface
+
+## Troubleshooting
+
+If you encounter connection issues with AnkiConnect:
+1. Ensure Anki is running and accessible through the UI
+2. Check that the AnkiConnect addon is properly installed
+3. Verify that port 8765 is open and accessible
+4. Check the Anki logs for any error messages
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
