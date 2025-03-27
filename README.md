@@ -76,6 +76,15 @@ If you also want to use AnkiConnect, the configuration is automatically set up w
 
 The configuration is automatically copied to the correct location during container startup, and AnkiConnect is ready to use without any manual configuration steps.
 
+Note: The following manual installation steps are provided for context only. You do not need to perform these steps as the addon is automatically installed and configured during the Docker build process.
+
+### Manual AnkiConnect Installation (For Reference Only)
+After the initial setup, you need to install the AnkiConnect addon manually through the Anki UI:
+1. Open Anki
+2. Go to Tools > Add-ons > Get Add-ons
+3. Enter the code: 2055492159
+4. Click OK to install AnkiConnect
+
 ## Cron example
 
 Using the following command:
