@@ -159,6 +159,22 @@ After the initial setup, you need to install the AnkiConnect addon manually thro
 
 This manual installation is required because Anki needs to properly register and initialize the addon through its UI.
 
+## Web Interface
+
+The project includes a web interface for easier interaction with Anki. To start the web interface:
+
+```bash
+
+docker-compose --profile web up -d
+
+```
+The web interface will be available at `http://<your-server-ip>:5000`.
+
+Features:
+- Upload .apkg files directly through the web interface
+- View and manage Anki decks
+- Simple and intuitive user interface
+
 ## Usage
 
 Once AnkiConnect is installed, you can interact with Anki through its API at `http://<your-server-ip>:8765`.
