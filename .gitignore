@@ -11,3 +11,8 @@ anki-data/Anki2/User 1/
 # AnkiConnect configuration 
 # The AnkiConnect brings in its own config.json and we have to overwrite it upon install.
 anki-data/Anki2/addons21/2055492159/config.json
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
