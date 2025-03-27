@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  anki:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: anki
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+      - DISPLAY=:0
+    volumes:
+      - ./config:/config:rw
+      - ./data:/data:rw
+      - ./anki_data:/config/app:rw
+      - ./backups:/config/app/backups:rw
+    ports:
+      - "3000:3000"  # VNC web interface
+      - "8765:8765"  # AnkiConnect API (we'll configure this later)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    restart: unless-stopped
+    networks:
+      - anki_network
+    labels:
+      - "com.example.description=Anki flashcard application"
+      - "com.example.service=anki"
+
+networks:
+  anki_network:
+    driver: bridge
+    name: anki_network
+
+volumes:
+  anki_data:
+    name: anki_data
