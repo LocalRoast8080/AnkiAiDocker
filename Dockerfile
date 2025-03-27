@@ -18,3 +18,13 @@ RUN \
 VOLUME "/config/app" 
 
 COPY ./root /
+COPY ./config/anki/ankiConnectConfig.json /config/app/Anki2/addons21/2055492159/config.json
+
+# Create a script to ensure AnkiConnect config is always correct
+RUN echo '#!/bin/bash\n\
+if [ -f "/config/app/Anki2/addons21/2055492159/config.json" ]; then\n\
+    cp /config/app/Anki2/addons21/2055492159/config.json /config/app/Anki2/addons21/2055492159/config.json.bak\n\
+    cp /config/app/Anki2/addons21/2055492159/config.json.orig /config/app/Anki2/addons21/2055492159/config.json\n\
+fi\n\
+' > /config/app/Anki2/addons21/2055492159/update_config.sh && \
+chmod +x /config/app/Anki2/addons21/2055492159/update_config.sh
