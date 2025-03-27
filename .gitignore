@@ -1,13 +1,12 @@
 # Anki data
-anki_data/
-config/
-data/
 backups/
 
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
+__init__.py
+__main__.py
 *.so
 .Python
 env/
