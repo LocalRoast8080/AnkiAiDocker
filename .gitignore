@@ -81,3 +81,13 @@ web_interface/*.pyc
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Configuration and runtime data
+config/.XDG/
+config/.bashrc
+config/.cache/
+config/.config/
+config/.dbus/
+config/.local/
+config/.sudo_as_admin_successful
+config/ssl/
