@@ -6,7 +6,7 @@ const axios = require('axios');
 const logger = require('./logger');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 const ankiConnectUrl = 'http://localhost:8765';
 
 // Path to store imported decks
