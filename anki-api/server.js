@@ -6,7 +6,7 @@ const axios = require('axios');
 const logger = require('./logger');
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 const ankiConnectUrl = 'http://localhost:8765';
 
 // Path to store imported decks
@@ -83,7 +83,7 @@ app.post('/uploadDeck', upload.single('deck'), async (req, res) => {
         filename: req.file.originalname, 
         error: response.data.error 
       });
-      
+
       // Delete the file if import fails
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
