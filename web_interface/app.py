@@ -7,8 +7,8 @@ import subprocess
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# Anki media directory
-ANKI_MEDIA_DIR = '/config/app/Anki2/User 1/collection.media'
+# Anki media directory - using local directory
+ANKI_MEDIA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 
 # Ensure Anki media directory exists
 os.makedirs(ANKI_MEDIA_DIR, exist_ok=True)

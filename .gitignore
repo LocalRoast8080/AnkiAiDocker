@@ -1,5 +1,14 @@
 # Anki data
 backups/
+anki_data/
+anki-data/
+*.apkg
+*.anki2
+*.anki21
+*.col2
+*.media.db2
+*.media.db21
+*.collection.media/
 
 # Python
 __pycache__/
@@ -25,21 +34,33 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+venv/
+.env
+.venv
+ENV/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*.swn
+*.bak
+*.tmp
+*~
 
 # Logs
 *.log
 logs/
-
-# Anki runtime files
 anki-data/Anki2/anki.log
 anki-data/Anki2/prefs21.db
 anki-data/Anki2/addons21/*/__pycache__/
+
+# Docker
+.docker/
+docker-compose.override.yml
+*.env
+.env.*
 
 # Keep only the AnkiConnect addon files
 anki-data/Anki2/addons21/*
@@ -49,6 +70,24 @@ anki-data/Anki2/addons21/*
 !anki-data/Anki2/addons21/2055492159/util.py
 !anki-data/Anki2/addons21/2055492159/edit.py
 
+# Web interface
+web_interface/uploads/
+web_interface/static/uploads/
+web_interface/templates/cache/
+web_interface/__pycache__/
+web_interface/*.pyc
 
-# AnkiConnect configuration
-anki-data/Anki2/addons21/2055492159/config.json
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Configuration and runtime data
+config/.XDG/
+config/.bashrc
+config/.cache/
+config/.config/
+config/.dbus/
+config/.local/
+config/.sudo_as_admin_successful
+config/ssl/
