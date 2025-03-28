@@ -8,28 +8,26 @@ const app = express();
 const port = process.env.PORT || 3001;
 const ankiConnectUrl = 'http://localhost:8765';
 
-// Path to Anki's collection.media folder (inside the Docker container)
-// This is where the .apkg files should be stored
-const ankiDataDir = path.join(__dirname, '..', 'anki_data', 'Anki2');
+// Path to store imported decks
+const importDir = path.join(__dirname, '..', 'anki_data', 'imports');
+
+// Ensure import directory exists
+if (!fs.existsSync(importDir)) {
+  fs.mkdirSync(importDir, { recursive: true });
+}
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Create Anki data directory if it doesn't exist
-    if (!fs.existsSync(ankiDataDir)) {
-      fs.mkdirSync(ankiDataDir, { recursive: true });
-    }
-    cb(null, ankiDataDir);
+    cb(null, importDir);
   },
   filename: (req, file, cb) => {
     cb(null, file.originalname);
   }
 });
 
-// File filter to only accept .apkg files
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'application/octet-stream' || 
-      file.originalname.endsWith('.apkg')) {
+  if (file.originalname.endsWith('.apkg')) {
     cb(null, true);
   } else {
     cb(new Error('Only .apkg files are allowed!'), false);
@@ -39,155 +37,14 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB max file size
+  limits: { fileSize: 50 * 1024 * 1024 }
 });
 
-// Basic middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Create a simple HTML form for uploading files
-app.get('/', (req, res) => {
-  // Generate the HTML dynamically if index.html doesn't exist
-  const html = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <title>Anki Deck Uploader</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-      h1 {
-        color: #2c3e50;
-      }
-      .form-container {
-        border: 1px solid #ddd;
-        padding: 20px;
-        border-radius: 5px;
-        margin-top: 20px;
-      }
-      .form-group {
-        margin-bottom: 15px;
-      }
-      .btn {
-        background-color: #3498db;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      .status {
-        margin-top: 20px;
-        padding: 15px;
-        border-radius: 5px;
-      }
-      .success {
-        background-color: #d4edda;
-        color: #155724;
-      }
-      .error {
-        background-color: #f8d7da;
-        color: #721c24;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Anki Deck Uploader</h1>
-    <div class="form-container">
-      <form action="/upload-deck" method="post" enctype="multipart/form-data">
-        <div class="form-group">
-          <label for="deck">Select an Anki Deck (.apkg file):</label>
-          <input type="file" id="deck" name="deck" accept=".apkg" required>
-        </div>
-        <button type="submit" class="btn">Upload Deck</button>
-      </form>
-    </div>
-    <div id="status" class="status" style="display: none;"></div>
-    
-    <script>
-      document.querySelector('form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        const statusDiv = document.getElementById('status');
-        
-        try {
-          const response = await fetch('/upload-deck', {
-            method: 'POST',
-            body: formData
-          });
-          
-          const result = await response.json();
-          
-          if (response.ok) {
-            statusDiv.className = 'status success';
-            statusDiv.textContent = \`Success: \${result.message}\`;
-          } else {
-            statusDiv.className = 'status error';
-            statusDiv.textContent = \`Error: \${result.error}\`;
-          }
-        } catch (error) {
-          statusDiv.className = 'status error';
-          statusDiv.textContent = \`Error: \${error.message}\`;
-        }
-        
-        statusDiv.style.display = 'block';
-      });
-    </script>
-  </body>
-  </html>
-  `;
-  
-  res.send(html);
-});
-
-// Endpoint to upload Anki deck (.apkg file)
-app.post('/upload-deck', upload.single('deck'), async (req, res) => {
+app.get('/anki-connect-status', async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded or file type not supported' });
-    }
-
-    const filePath = req.file.path;
-    
-    // Optional: Use AnkiConnect to trigger Anki to sync after file upload
-    try {
-      await axios.post(ankiConnectUrl, {
-        action: 'sync',
-        version: 6
-      });
-    } catch (syncError) {
-      console.log('Could not trigger Anki sync:', syncError.message);
-      // Continue anyway as the file has been uploaded
-    }
-
-    return res.status(200).json({ 
-      message: 'Deck uploaded successfully',
-      file: req.file.originalname,
-      path: filePath,
-      note: 'The .apkg file has been placed in the Anki data directory. Please open Anki and import the deck manually from File > Import.'
-    });
-  } catch (error) {
-    console.error('Error uploading deck:', error);
-    return res.status(500).json({ 
-      error: 'Failed to upload deck', 
-      details: error.message 
-    });
-  }
-});
-
-// Endpoint to check AnkiConnect status
-app.get('/anki-status', async (req, res) => {
-  try {
-    const response = await axios.post(ankiConnectUrl, {
-      action: 'version',
-      version: 6
-    });
+    const response = await axios.post(ankiConnectUrl, {});
     
     return res.status(200).json({ 
       status: 'connected',
@@ -202,8 +59,82 @@ app.get('/anki-status', async (req, res) => {
   }
 });
 
-// Start the server
+app.post('/uploadDeck', upload.single('deck'), async (req, res) => {
+
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded or invalid file type' });
+    }
+
+    const filePath = req.file.path;
+    
+    const response = await axios.post(ankiConnectUrl, {
+      action: 'importPackage',
+      version: 6,
+      params: {
+        path: filePath
+      }
+    });
+
+    if (response.data.result !== true) {
+      return res.status(500).json({ 
+        error: 'Failed to import deck', 
+        details: response.data.error
+      });
+    }
+
+    return res.status(200).json({ 
+      message: 'Deck imported successfully',
+      file: req.file.originalname
+    });
+  } catch (error) {
+    return res.status(500).json({ 
+      error: 'Failed to import deck', 
+      details: error.message 
+    });
+  }
+});
+
+app.get('/exportDeck/:deckName', async (req, res) => {
+  const deckName = req.params.deckName;
+  const exportPath = path.join(importDir, `${deckName}.apkg`);
+
+  try {
+    const response = await axios.post(ankiConnectUrl, {
+      action: 'exportPackage',
+      version: 6,
+      params: {
+        deck: deckName,
+        path: exportPath,
+        includeSched: true
+      }
+    });
+
+    if (!fs.existsSync(exportPath)) {
+      return res.status(404).json({ error: 'Deck export failed or file not found' });
+    }
+
+    res.download(exportPath, `${deckName}.apkg`, (err) => {
+
+      // Delete the file after download completes or errors
+      if (fs.existsSync(exportPath)) {
+        fs.unlinkSync(exportPath);
+      }
+      
+      if (err) {
+        console.error('Error during file download:', err);
+      }
+    });
+  } catch (error) {
+    console.error('Error exporting deck:', error);
+    return res.status(500).json({ 
+      error: 'Failed to export deck', 
+      details: error.message 
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
-  console.log(`Anki data directory: ${ankiDataDir}`);
+  console.log(`Anki data directory: ${importDir}`);
 }); 
