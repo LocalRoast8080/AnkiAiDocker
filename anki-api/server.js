@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
+const logger = require('./logger');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -77,10 +78,6 @@ app.post('/uploadDeck', upload.single('deck'), async (req, res) => {
     });
 
     if (response.data.result !== true) {
-      // Delete the file if import fails
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
       return res.status(500).json({ 
         error: 'Failed to import deck', 
         details: response.data.error
@@ -124,12 +121,13 @@ app.get('/exportDeck/:deckName', async (req, res) => {
     res.on('finish', () => {
       if (fs.existsSync(exportPath)) {
         fs.unlinkSync(exportPath);
+        logger.info('File successfully transferred and deleted', { path: exportPath });
       }
     });
 
     // Just log the error but don't delete the file if transfer fails
     res.on('error', (err) => {
-      console.error('Error during file download:', err);
+      logger.error('Error during file download', { error: err.message, path: exportPath });
     });
   } catch (error) {
     console.error('Error exporting deck:', error);
