@@ -77,6 +77,10 @@ app.post('/uploadDeck', upload.single('deck'), async (req, res) => {
     });
 
     if (response.data.result !== true) {
+      // Delete the file if import fails
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
       return res.status(500).json({ 
         error: 'Failed to import deck', 
         details: response.data.error
@@ -114,16 +118,18 @@ app.get('/exportDeck/:deckName', async (req, res) => {
       return res.status(404).json({ error: 'Deck export failed or file not found' });
     }
 
-    res.download(exportPath, `${deckName}.apkg`, (err) => {
+    res.download(exportPath, path.basename(exportPath));
 
-      // Delete the file after download completes or errors
+    // Only delete on successful transfer
+    res.on('finish', () => {
       if (fs.existsSync(exportPath)) {
         fs.unlinkSync(exportPath);
       }
-      
-      if (err) {
-        console.error('Error during file download:', err);
-      }
+    });
+
+    // Just log the error but don't delete the file if transfer fails
+    res.on('error', (err) => {
+      console.error('Error during file download:', err);
     });
   } catch (error) {
     console.error('Error exporting deck:', error);
