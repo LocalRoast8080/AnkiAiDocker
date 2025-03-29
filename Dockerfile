@@ -23,7 +23,7 @@ RUN mkdir -p /config/app/Anki2/addons21/2055492159 && \
     "ignoreOriginList": [],\n\
     "webBindAddress": "0.0.0.0",\n\
     "webBindPort": 8765,\n\
-    "webCorsOrigin": "http://localhost",\n\
+    "webCorsOrigin": "*",\n\
     "webCorsOriginList": [\n\
         "*"\n\
     ]\n\

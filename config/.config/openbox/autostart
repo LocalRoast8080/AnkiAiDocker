@@ -1,0 +1,19 @@
+#!/bin/bash
+echo "Starting autostart" > /tmp/autostart.log
+id >> /tmp/autostart.log
+chown -R $PUID:$PGID /config/app || echo "chown failed with $PUID:$PGID" >> /tmp/autostart.log
+chmod -R 777 /config/app || echo "chmod failed" >> /tmp/autostart.log
+mkdir -p /config/app/Anki2 || echo "mkdir Anki2 failed" >> /tmp/autostart.log
+mkdir -p /config/app/Anki || echo "mkdir Anki failed" >> /tmp/autostart.log
+mkdir -p /config/app/Anki2/addons21/2055492159 || echo "mkdir addons failed" >> /tmp/autostart.log
+cp /defaults/ankiconnect.json /config/app/Anki2/addons21/2055492159/config.json || echo "cp failed" >> /tmp/autostart.log
+export DISABLE_QT5_COMPAT=1
+export LC_ALL=en_US.UTF-8
+export PYTHONPATH=/config/app/Anki2/addons21/2055492159:$PYTHONPATH
+# Start D-Bus
+dbus-daemon --system --fork || echo "dbus-daemon failed" >> /tmp/autostart.log
+if [ -f "/config/app/Anki2/addons21/2055492159/update_config.sh" ]; then
+    /config/app/Anki2/addons21/2055492159/update_config.sh || echo "update_config failed" >> /tmp/autostart.log
+fi
+echo "Starting Anki" >> /tmp/autostart.log
+anki --no-qt-sandbox --no-sandbox >> /tmp/autostart.log 2>&1 &
