@@ -91,3 +91,8 @@ config/.dbus/
 config/.local/
 config/.sudo_as_admin_successful
 config/ssl/
+
+# These Configuration Files are needed to run the Anki UI!
+!config/.config/openbox/
+!config/.config/openbox/autostart
+!config/.config/openbox/menu.xml

@@ -34,6 +34,21 @@ services:
       - "com.example.description=Anki flashcard application"
       - "com.example.service=anki"
 
+  api:
+    build:
+      context: ./anki-api
+      dockerfile: Dockerfile
+    container_name: anki-api
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./anki_data:/app/anki_data:rw
+    networks:
+      - anki_network
+    depends_on:
+      - anki
+    restart: unless-stopped
+
 networks:
   anki_network:
     driver: bridge
